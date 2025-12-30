@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Milestone {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  importance  Int      @default(1)
+  dueDate     DateTime?
+  x           Float?
+  y           Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  milestoneId String
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  tags        String?
+  importance  Int       @default(1)
+  dueDate     DateTime?
+  completed   Boolean   @default(false)
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  subtasks    Subtask[]
+}
+
+model Subtask {
+  id          String   @id @default(uuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  tags        String?
+  importance  Int      @default(1)
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Metrics {
+  id                  Int      @id @default(1)
+  totalCompletedCount Int      @default(0)
+  lastCompletionAt    DateTime?
+  momentumScore       Float    @default(0)
+  sunBrightness       Float    @default(0.2)
+  updatedAt           DateTime @updatedAt
+}
+
+model UndoAction {
+  id              String   @id @default(uuid())
+  actionType      String   // 'create' | 'update' | 'delete' | 'complete' | 'uncomplete' | 'reassign' | 'promote' | 'reorder'
+  entityType      String   // 'milestone' | 'task' | 'subtask'
+  entityId        String   // The affected entity
+  beforeSnapshot  String?  // JSON: entity state before (null for create)
+  afterSnapshot   String?  // JSON: entity state after (null for delete)
+  parentId        String?  // Parent ID for hierarchy restoration
+  metadata        String?  // JSON: additional context (cascade data, order values)
+  isUndone        Boolean  @default(false) // True if this action has been undone (for redo)
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([isUndone])
+}
