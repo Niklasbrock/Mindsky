@@ -31,3 +31,8 @@ npm-debug.log*
 # Prisma
 backend/prisma/*.db
 backend/prisma/*.db-journal
+
+# Old/backup files
+CLAUDE_old_*.md
+design_brief_old_*.pdf
+Screenshots/
